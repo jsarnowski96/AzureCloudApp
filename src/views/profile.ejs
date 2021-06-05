@@ -1,0 +1,71 @@
+<script>
+    $(document).ready(function() {
+        var i = 0;
+        $('button[name="edit"]').on('click', function() {
+            i++;
+            if(i <= 1) {
+                $('fieldset[name="form-control-fieldset"]').removeAttr("disabled");
+                $('button[name="edit"]').attr("hidden", true);
+                $('button[name="return"]').attr("hidden", true);
+                var saveBtn = $('<button type="submit" class="btn btn-primary" data-toggle="modal" data-target=".modal">Save changes</button>');
+                var cancelBtn = $('<button type="button" class="btn btn-warning ml-1">Cancel</button>');            
+                $("form").append(saveBtn);
+                $("form").append(cancelBtn);
+            }
+            $(cancelBtn).on('click', function() {
+              i = 0;
+              $('fieldset[name="form-control-fieldset"]').attr("disabled", true);
+              $('button[name="edit"]').removeAttr("hidden");
+              $('button[name="return"]').removeAttr("hidden");
+              $(cancelBtn).remove();
+              $(saveBtn).remove();
+              $("form")[0].reset();
+            });
+
+            $(saveBtn).on('click', function() {
+                $('div[name="confirmation"]').removeAttr("hidden");
+                $('form[name="profile"]').submit(function(e){
+                    e.preventDefault();
+                    $.ajax({
+                        type : 'POST',
+                        data: $('form[name="profile"]').serialize(),
+                        url : '/profile'
+                    }).done(function() {
+                    $('button[name="goToDashboard"]').on('click', function() {
+                        window.location.replace('/dashboard');
+                    });
+                    });
+                });
+            });
+        });
+    });
+  </script>
+
+<section>
+    <div class="container col-lg-6 col-md-6 col-sm-12 text-center justify-content-center">
+        <hr><h1>Profile</h1><hr>
+        <form action="/profile" method="POST" name="profile">
+            <fieldset name="form-control-fieldset" disabled>
+                <div class="form-group">
+                    <label for="login">Login</label>
+                    <input type="login" class="form-control" name="login" value="<%= user.login %>">
+                </div>
+                <div class="form-group">
+                    <label for="firstname">First name</label>
+                    <input type="firstname" class="form-control" name="firstname" value="<%= user.firstname %>">
+                </div>
+                <div class="form-group">
+                    <label for="lastname">Last name</label>
+                    <input type="lastname" class="form-control" name="lastname" value="<%= user.lastname %>">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <input type="email" class="form-control" name="email" value="<%= user.email %>">
+                </div>
+            </fieldset>
+            <button type="button" name="edit" class="btn btn-success">Edit</button>
+            <a role="button" name="return" class="btn btn-info" href="/dashboard">Return</button></a>
+        </form>
+        <%- include('./partials/modals/profile-updated-modal.ejs') %>
+    </div>
+</section>

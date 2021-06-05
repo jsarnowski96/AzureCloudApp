@@ -1,0 +1,82 @@
+<script>
+  $(document).ready(function() {
+    var submitBtn = document.getElementById('submit');
+    var response, msg, location;
+      $(submitBtn).on('click', function() {
+        $('div[name="confirmation"]').removeAttr("hidden");
+        $('form[name="contact"]').submit(function(e){
+          e.preventDefault();
+          $.ajax({
+            type : 'POST',
+            data: $('form[name="contact"]').serialize(),
+            url : '/contact',
+            success: function(data) {
+              response = data.authenticated;
+              console.log(response);
+            }
+          }).done(function () {
+            if(response) {
+              msg = 'Return to dashboard';
+              location = '/dashboard';
+            } else {
+              msg = 'Return to home page';
+              location = '/';
+            }
+
+            $('button[name="goToDestination"]').html(msg);
+            $('button[name="goToDestination"]').on('click', function() {
+                window.location.replace(location);
+            });
+          });
+        });
+      }); 
+  });
+</script>
+
+<section>
+  <div class="container col-lg-6 col-md-6 col-sm-12 text-center justify-content-center">
+    <hr><h1>Contact Form</h1><hr>
+    <%- include ('./partials/messages') %>
+    <form action="/contact" method="POST" name="contact">
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <% if(!user) { %>
+            <input type="email" class="form-control" name="email" value="<%= typeof email != 'undefined' ? email : '' %>">
+          <% } else { %>
+            <input type="email" class="form-control" name="email" value="<%= user.email %>">
+          <% } %>
+        </div>
+        <div class="form-group">
+            <label for="firstname">First name</label>
+            <% if(!user) { %>
+            <input type="firstname" class="form-control" name="firstname" value="<%= typeof firstname != 'undefined' ? firstname : '' %>">
+            <% } else { %>
+              <input type="firstname" class="form-control" name="firstname" value="<%= user.firstname %>">
+              <% } %>
+          </div>
+          <div class="form-group">
+            <label for="lastname">Last name</label>
+            <% if(!user) { %>
+            <input type="lastname" class="form-control" name="lastname" value="<%= typeof lastname != 'undefined' ? lastname : '' %>">
+            <% } else { %>
+              <input type="lastname" class="form-control" name="lastname" value="<%= user.lastname %>">
+              <% } %>
+          </div><br /><hr><br />
+          <div class="form-group">
+            <label for="subject">Subject</label>
+            <input type="subject" class="form-control" name="subject" value="<%= typeof subject != 'undefined' ? subject : '' %>">
+          </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea name="message" type="message" class="form-control" value="<%= typeof message != 'undefined' ? message : '' %>"></textarea>
+          </div><br />
+        <button type="submit" class="btn btn-primary btn-block" name="submit" id="submit" data-toggle="modal" data-target=".modal">Send</button>
+        <% if(!user) { %>
+            <a role="button" class="btn btn-danger btn-block" href="/">Cancel</a>
+        <% } else { %>
+            <a role="button" class="btn btn-danger btn-block" href="/dashboard">Cancel</a>
+        <% } %>
+    </form>
+    <%- include('./partials/modals/contact-form-sent-modal.ejs') %>
+  </div>
+</section>

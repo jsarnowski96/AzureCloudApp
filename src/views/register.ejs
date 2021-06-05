@@ -1,0 +1,50 @@
+<script>
+  $(document).ready(function() {
+    $('button[name="register"]').on('click', function(e) {
+    e.preventDefault();
+    $("form").submit();
+    $('div[name="confirmation"]').removeAttr("hidden");
+    $('button[name="goToDashboard"]').on('click', function() {
+      window.location.replace('/auth/login');
+      });
+    });
+  });
+</script>
+
+<section>
+  <div class="container col-12 col-sm-6 col-lg-3 text-center justify-content-center">
+    <hr><h1>Register</h1><hr>
+    <%- include ('./partials/messages') %>
+    <form action="/auth/register" method="POST">
+        <div class="form-group">
+          <label for="login">Login</label>
+          <input type="login" class="form-control" name="login" value="<%= typeof login != 'undefined' ? login : '' %>">
+        </div>
+        <div class="form-group">
+            <label for="firstname">First name</label>
+            <input type="firstname" class="form-control" name="firstname" value="<%= typeof firstname != 'undefined' ? firstname : '' %>">
+          </div>
+          <div class="form-group">
+            <label for="lastname">Last name</label>
+            <input type="lastname" class="form-control" name="lastname" value="<%= typeof lastname != 'undefined' ? lastname : '' %>">
+          </div>
+          <div class="form-group">
+            <label for="email">Email address</label>
+            <input type="email" class="form-control" name="email" value="<%= typeof email != 'undefined' ? email : '' %>">
+          </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" class="form-control" name="password" value="<%= typeof password != 'undefined' ? password : '' %>">
+        </div>
+        <div class="form-group">
+            <label for="password_confirm">Confirm password</label>
+            <input type="password" class="form-control" name="password_confirm" value="<%= typeof password_confirm != 'undefined' ? password_confirm : '' %>">
+          </div>
+          <button type="submit" class="btn btn-primary" name="register" data-toggle="modal" data-target=".modal">Register account</button>
+          <button type="reset" class="btn btn-info">Reset form</button>
+          <a role="button" class="btn btn-danger" href="/">Cancel</a>
+      </form>
+      <p>Already have an Account? <a href="/auth/login">Login</a></p>
+  </div>
+  <%- include('./partials/modals/registration-modal.ejs') %>
+</section>
