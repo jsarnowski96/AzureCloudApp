@@ -26,7 +26,7 @@
   <div class="container col-lg-6 col-md-6 col-sm-12 text-center justify-content-center">
     <hr><h1>Create new note</h1><hr>
     <%- include ('./partials/messages') %>
-    <form action="/dashboard/note/create" method="POST" name="newNote">
+    <form action="/dashboard/note/create" method="POST" name="newNote" enctype="multipart/form-data">
       <div class="form-group">
         <label for="title">Title</label>
         <input type="title" class="form-control" name="title" value="<%= typeof title != 'undefined' ? title : '' %>">
@@ -42,6 +42,10 @@
           <option>Medium</option>
           <option>High</option>
         </select>
+      </div>
+      <div class="form-group">
+        <label for="blob">OPTIONAL - File</label>
+        <input type="file" class="form-control" style="padding-bottom: 35px;" name="blob">
       </div>
       <button type="submit" class="btn btn-primary" id="submit" data-toggle="modal" data-target=".modal">Submit note</button>
       <button type="reset" class="btn btn-info">Reset</button>

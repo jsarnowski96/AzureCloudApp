@@ -3,6 +3,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const passport = require('passport');
 require('./src/config/passport')(passport);
+//const fileUpload = require('express-fileupload');
 const session = require('express-session');
 const flash = require('connect-flash');
 const morgan = require('morgan');
@@ -22,6 +23,8 @@ mongoose.connect('mongodb+srv://'+process.env.DB_USERNAME+':'+process.env.DB_PAS
 })
 .then(() => console.log('ATLAS - Connected'))
 .catch((error) => console.log(error));
+
+//app.use(fileUpload());
 
 app.set('view engine', 'ejs');
 app.use(expressEjsLayout);

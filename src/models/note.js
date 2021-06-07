@@ -32,6 +32,11 @@ const NoteSchema = new mongoose.Schema({
         default: 'To do'
     },
 
+    uploaded_file_name: {
+        type: String,
+        default: null
+    },
+
     created_at: {
         type: Date,
         default: Date.now
