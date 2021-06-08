@@ -3,16 +3,18 @@ const express = require('express');
 const router = express.Router();
 const sanitizeHtml = require('sanitize-html');
 const azureStorageService = require('../services/azureStorageService');
-const fileUpload = require('express-fileupload');
+//const fileUpload = require('express-fileupload');
+const formidable = require('formidable');
 
 azureStorageService.init().then(() => console.log('Done')).catch((ex) => console.log(ex.message));
 
 const Note = require('../models/note');
 
-router.use(fileUpload());
+//router.use(fileUpload());
 
 router.get('/', ensureAuthenticated, async (req, res, next) => {
     let errors = [];
+
     Note.find({user_id: req.user.id})
         .then((notes) => {
             notes.forEach(note => {
@@ -37,16 +39,8 @@ router.get('/', ensureAuthenticated, async (req, res, next) => {
 
 router.get('/note/edit/:id', ensureAuthenticated, (req, res, next) => {
     let errors = [];
+    var blob;
 
-    if (req.files && Object.keys(req.files).length > 0) {
-        if(!azureStorageService.getContainer(req.user.login)) {
-            azureStorageService.createContainer(req.user.login);  
-        } else {
-            if(!azureStorageService.getBlob(req.files.blob.name)) {
-                azureStorageService.createBlob(req.user.login, req.files.blob);
-            }
-        }
-    }
     Note.findById({_id: req.params.id, user_id: req.user.id}, function(error, note) {
         let subject, content, priority, status, blob;
         if(!req.params.id || !req.user || !req.user.id) {
@@ -72,7 +66,7 @@ router.get('/note/edit/:id', ensureAuthenticated, (req, res, next) => {
             if(!note.uploaded_file_name || note.uploaded_file_name == null) {
                 blob = null;
             } else {
-                blob = note.uploaded_file_name;
+                blob = azureStorageService.getBlob(req.user.login, note.uploaded_file_name);
             }
 
             res.status(200).render('editNote', {
@@ -81,7 +75,7 @@ router.get('/note/edit/:id', ensureAuthenticated, (req, res, next) => {
                 priority,
                 status,
                 id: req.params.id,
-                blob,
+                blob: blob,
                 active: 'dashboard'
             });
         }
@@ -90,16 +84,18 @@ router.get('/note/edit/:id', ensureAuthenticated, (req, res, next) => {
 
 router.post('/note/edit/:id', ensureAuthenticated, (req, res, next) => {
     let errors = [];
-    console.log(req.files);
+    var uploaded_file_name;
 
     if (req.files && Object.keys(req.files).length > 0) {
+        console.log(req.files);
         if(!azureStorageService.getContainer(req.user.login)) {
             azureStorageService.createContainer(req.user.login);  
-        } else {
-            if(!azureStorageService.getBlob(req.files.blob.name)) {
-                azureStorageService.createBlob(req.user.login, req.files.blob);
-            }
         }
+
+        azureStorageService.createBlob(req.user.login, req.files.blob);
+        uploaded_file_name = req.files.blob.name;
+    } else {
+        uploaded_file_name = null;
     }
 
     Note.findById({_id: req.params.id, user_id: req.user.id}, function(error, note) {
@@ -122,7 +118,7 @@ router.post('/note/edit/:id', ensureAuthenticated, (req, res, next) => {
                 body: body,
                 priority: priority,
                 status: status,
-                blob,
+                blob: uploaded_file_name,
                 active: 'dashboard'
             });
         } else {
@@ -130,6 +126,7 @@ router.post('/note/edit/:id', ensureAuthenticated, (req, res, next) => {
             note.body = body;
             note.priority = priority;
             note.status = status;
+            note.uploaded_file_name = uploaded_file_name;
 
             if(!note.uploaded_file_name || note.uploaded_file_name == null) {
                 blob = null;
@@ -146,7 +143,7 @@ router.post('/note/edit/:id', ensureAuthenticated, (req, res, next) => {
                         body: body,
                         priority: priority,
                         status: status,
-                        blob,
+                        blob: uploaded_file_name,
                         active: 'dashboard'
                     });
                 }
@@ -159,6 +156,7 @@ router.post('/note/edit/:id', ensureAuthenticated, (req, res, next) => {
 
 router.get('/note/delete/:id', ensureAuthenticated, (req, res, next) => {
     let errors = [];
+
     Note.findOneAndRemove({_id: req.params.id, user_id: req.user.id})
     .then((note) => {
         if(!req.params.id || !req.user || !req.user.id) {
@@ -190,17 +188,22 @@ router.get('/note/delete/:id', ensureAuthenticated, (req, res, next) => {
 });
 
 router.post('/note/create', ensureAuthenticated, (req, res, next) => {
-    const {title, body, priority, blob} = req.body;
-    console.log(req.files);
+    const {title, body, priority} = req.body;
+    var uploaded_file_name;
 
     if (req.files && Object.keys(req.files).length > 0) {
+        console.log(req.files);
+        // azureStorageService.createContainer(req.user.login);  
         if(!azureStorageService.getContainer(req.user.login)) {
             azureStorageService.createContainer(req.user.login);  
-        } else {
-            if(!azureStorageService.getBlob(req.files.blob.name)) {
-                azureStorageService.createBlob(req.user.login, req.files.blob);
-            }
         }
+
+        // azureStorageService.createBlob(req.user.login, req.files.blob);
+        // uploaded_file_name = req.files.blob.name;
+        azureStorageService.createBlob(req.user.login, req.files.blob);
+        uploaded_file_name = req.files.blob.name;
+    } else {
+        uploaded_file_name = null;
     }
 
     let errors = [];
@@ -208,29 +211,30 @@ router.post('/note/create', ensureAuthenticated, (req, res, next) => {
     if(!title || !body) {
         errors.push({msg: 'Please fill in all fields'});
     }
+
     if(errors.length > 0) {
         res.status(500).render('newNote', {
             errors: errors,
             title: title,
             body: body,
             active: 'dashboard',
-            blob: blob,
+            blob: uploaded_file_name,
             user: req.user
         });
     } else {
-        if(!req.files || Object.keys(req.files).length === 0) {
-            uploaded_file_name = null;
-        } else {
-            uploaded_file_name = blob;
-        }
 
+        // if(!note.uploaded_file_name || note.uploaded_file_name == null) {
+        //     blob = null;
+        // } else {
+        //     blob = note.uploaded_file_name;
+        // }
 
         const newNote = new Note({
             title: title,
             body: body,
             user_id: res.locals.user.id,
             priority: priority,
-            uploaded_file_name,
+            uploaded_file_name: uploaded_file_name,
             status: 'To do'
         });
         newNote.save()

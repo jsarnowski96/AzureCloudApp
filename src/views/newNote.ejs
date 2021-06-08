@@ -9,10 +9,15 @@
 
       $('form[name="newNote"]').submit(function(e){
         e.preventDefault();
+        var formData = new FormData(this);
         $.ajax({
             type : 'POST',
-            data: $('form[name="newNote"]').serialize(),
-            url : '/dashboard/note/create'
+            data: formData,
+            // data: $('form[name="newNote"]').serializeArray(),
+            url : '/dashboard/note/create',
+            cache: false,
+            contentType: false,
+            processData: false
         }).done(function() {
           $('button[name="goToDashboard"]').on('click', function() {
             window.location.replace('/dashboard');
@@ -45,7 +50,7 @@
       </div>
       <div class="form-group">
         <label for="blob">OPTIONAL - File</label>
-        <input type="file" class="form-control" style="padding-bottom: 35px;" name="blob">
+        <input type="file" class="form-control-file" style="padding-bottom: 35px;" name="blob" value="<%= typeof blob != 'undefined' ? blob : '' %>">
       </div>
       <button type="submit" class="btn btn-primary" id="submit" data-toggle="modal" data-target=".modal">Submit note</button>
       <button type="reset" class="btn btn-info">Reset</button>
